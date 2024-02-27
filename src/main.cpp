@@ -2,14 +2,18 @@
 
 #include "debug.h"
 #include "defs.h"
+#include "classes.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
+
+#include <iostream>
+
 int main(int argc, char *argv[]) {
-	SDL_Window *window = NULL;
-	SDL_Renderer *renderer = NULL;	
+	SDL_Window *window = NULL;	
+	SDL_Renderer *renderer = NULL;
 
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -24,8 +28,7 @@ int main(int argc, char *argv[]) {
                    				0, 0, 0,
                    				255), SDL_GetError());	
 
-	SDL_Surface *image = IMG_Load("../Assets/Sprites/Invader_01-1.png");
-	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image);
+	Object *test = new Object(renderer, 0, 0, 2, "../Assets/Sprites/Invader_01-1.png", "../Assets/Sprites/Invader_01-2.png");
 
 	SDL_bool isRunning = SDL_TRUE;
 	while(isRunning) {
@@ -40,15 +43,12 @@ int main(int argc, char *argv[]) {
 
 		SDL_RenderClear(renderer);
 
-		SDL_Rect rect = {0, 0, INVADER_SIZE, INVADER_SIZE};
-		SDL_RenderCopy(renderer, texture, NULL, &rect);	
+		test->updateState(renderer);
 
 		SDL_RenderPresent(renderer);
 	}
 
-	
-	SDL_DestroyTexture(texture);
-	SDL_FreeSurface(image);
+	delete test;
 
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);

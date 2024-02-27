@@ -1,6 +1,4 @@
-#ifndef DEFS_H
-#define DEFS_H
-
+#pragma once
 
 #define GAME_TITLE				"Space Invaders by Duong"
 
@@ -14,4 +12,3 @@
 #define FONT_PATH				"../Assets/Fonts/bit5x3.ttf"
 #define FONT_SIZE				24
 
-#endif
