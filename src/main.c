@@ -4,6 +4,8 @@
 #include "defs.h"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 int main(int argc, char *argv[]) {
 	SDL_Window *window = NULL;
@@ -11,18 +13,19 @@ int main(int argc, char *argv[]) {
 
 	SDL_Init(SDL_INIT_VIDEO);
 
-	window = (SDL_Window*)CP((void*)SDL_CreateWindow(GAME_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-									WINDOW_WIDTH, WINDOW_HEIGHT, 
-									SDL_WINDOW_SHOWN), SDL_GetError()); 
+	window = (SDL_Window*)CP(	(void*)SDL_CreateWindow(GAME_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+								WINDOW_WIDTH, WINDOW_HEIGHT, 
+								SDL_WINDOW_SHOWN), SDL_GetError()); 
 
-	renderer = (SDL_Renderer*)CP((void*)SDL_CreateRenderer(window, -1,
-										SDL_RENDERER_ACCELERATED), SDL_GetError());	
+	renderer = (SDL_Renderer*)CP(	(void*)SDL_CreateRenderer(window, -1,
+									SDL_RENDERER_ACCELERATED), SDL_GetError());	
 
-	CC(SDL_SetRenderDrawColor(renderer,
-                   0, 0, 0,
-                   255), SDL_GetError());	
-	CC(SDL_RenderClear(renderer), SDL_GetError());
-	SDL_RenderPresent(renderer);
+	CC(SDL_SetRenderDrawColor(	renderer,
+                   				0, 0, 0,
+                   				255), SDL_GetError());	
+
+	SDL_Surface *image = IMG_Load("../Assets/Sprites/Invader_01-1.png");
+	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image);
 
 	SDL_bool isRunning = SDL_TRUE;
 	while(isRunning) {
@@ -34,10 +37,22 @@ int main(int argc, char *argv[]) {
 					break;
 			}
 		}
+
+		SDL_RenderClear(renderer);
+
+		SDL_Rect rect = {0, 0, INVADER_SIZE, INVADER_SIZE};
+		SDL_RenderCopy(renderer, texture, NULL, &rect);	
+
+		SDL_RenderPresent(renderer);
 	}
+
+	
+	SDL_DestroyTexture(texture);
+	SDL_FreeSurface(image);
 
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);
+
 	SDL_Quit();
 	
 	return 0;
