@@ -1,14 +1,27 @@
 #pragma once
 
+
+
+
 #define GAME_TITLE				"Space Invaders by Duong"
 
-#define WINDOW_WIDTH			900
-#define WINDOW_HEIGHT			600
-
-#define INVADER_SIZE			25
-#define INVADER_COLUMN			1
-#define INVADER_ROW				1
+#define FPS						240
 
 #define FONT_PATH				"../Assets/Fonts/bit5x3.ttf"
-#define FONT_SIZE				24
+
+#define WINDOW_WIDTH			660
+#define WINDOW_HEIGHT			800
+
+#define INVADER_SIZE			30
+
+#define INVADER_COLUMN_GAP		20
+#define INVADER_ROW_GAP			30
+
+#define INVADER_COLUMN			11
+#define INVADER_ROW				5
+
+#define INVADER_SPRITE_FREQ		1000000000ULL
+
+#define PLAYER_MOVE_SPEED		
+#define INVADER_MOVE_SPEED		40	 
 
