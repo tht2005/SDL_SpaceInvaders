@@ -8,7 +8,7 @@ bool iSect(const SDL_Rect& a, const SDL_Rect& b) {
 			std::max(a.y, b.y) <= std::min(a.y + a.h, b.y + b.h);	
 }
 
-Object::Object(SDL_Renderer *renderer, int x, int y, int w, int h, int n...) : Time(0), xx(x), yy(y), sprites(n), textures(n) {
+Object::Object(SDL_Renderer *renderer, int x, int y, int w, int h, int n...) : dir(0), Time(0), xx(x), yy(y), sprites(n), textures(n) {
 	render_position = { x, y, w, h };	
 
 	va_list args;
@@ -21,6 +21,7 @@ Object::Object(SDL_Renderer *renderer, int x, int y, int w, int h, int n...) : T
 	va_end(args);
 }
 Object::~Object() {
+	// im solving enemy delete error
 	for(int i = 0; i < (int)sprites.size(); ++i) {
 		SDL_FreeSurface(sprites[i]);
 		SDL_DestroyTexture(textures[i]);
@@ -28,16 +29,19 @@ Object::~Object() {
 }
 
 bool Object::insideWindow() {
-	return 		0 <= xx && xx + render_position.w <= WINDOW_WIDTH;
+	return 		0 <= xx && xx + render_position.w <= WINDOW_WIDTH &&
+				0 <= yy && yy + render_position.h <= WINDOW_HEIGHT;
 }
-void Object::turnDir() {
+bool Object::getIn() {
 	if(xx < 0) {
 		xx = 0;
+		return 1;
 	}	
 	if(xx + render_position.w > WINDOW_WIDTH) {
 		xx = WINDOW_WIDTH - render_position.w;
+		return 1;
 	}
-	dir ^= 15;
+	return 0;
 }
 
 void Object::setDir(int d) {
@@ -76,10 +80,6 @@ void Object::move(Uint64 moveSpeed, Uint64 deltaTime) {
 
 	render_position.x = xx;
 	render_position.y = yy;
-
-	if(!insideWindow()) {
-		turnDir();
-	}
 }
 
 SDL_Rect Object::getPos() {
@@ -91,23 +91,19 @@ void Object::setPos(const SDL_Rect& r) {
 	render_position = r;
 }
 
-void Object::updateState(SDL_Renderer *renderer, Uint64 deltaTime) {
+void Object::render(SDL_Renderer* renderer, int index) {
+	SDL_RenderCopy(renderer, textures[index], NULL, &render_position);
+}
+
+void Invader::update(SDL_Renderer *renderer, Uint64 deltaTime) {
 	Time += deltaTime;
-
-	move(INVADER_MOVE_SPEED, deltaTime);
-
-	// render object
-	if((int)textures.size() == 1) {
-		SDL_RenderCopy(renderer, textures[1], NULL, &render_position);
-	}
-	else {
-		SDL_RenderCopy(renderer, textures[(Time / INVADER_SPRITE_FREQ) & 1], NULL, &render_position);
-	}
+	render(renderer, (Time / INVADER_SPRITE_FREQ) & 1);
 }
 
 
 Invader::Invader(SDL_Renderer *renderer, int x, int y, int w, int h, const char* s0, const char* s1) : Object(renderer, x, y, w, h, 2, s0, s1) {}
 
+/*
 void Invader::solveCollision(Invader *b) {
 	if(!checkCollision(b)) {
 		return;
@@ -122,6 +118,97 @@ void Invader::solveCollision(Invader *b) {
 	else {
 		b->solveCollision(this);
 	}
+}
+*/
+
+
+
+Player::Player(SDL_Renderer* renderer, int x, int y, int w, int h) : Object(renderer, x, y, w, h, 1, "../Assets/Sprites/Player.png"), bulletTime(0) {}
+
+void Player::update(SDL_Renderer *renderer, Uint64 deltaTime) {
+	render(renderer, 0);
+
+	if(bulletTime < deltaTime)
+		bulletTime = 0;
+	else
+		bulletTime -= deltaTime;
+}
+void Player::shoot(SDL_Renderer *renderer, BulletFactory& bulletContainer, Uint64 deltaTime) {
+	if(bulletTime > 0)
+		return;
+
+	bulletTime += LAZER_COOLDOWN * 1000000000ULL;
+	bulletContainer.getBullet(renderer, render_position.x + PLAYER_SIZE / 2 - LAZER_WIDTH / 2, render_position.y - 30);
+}
+
+
+Bullet::Bullet(SDL_Renderer *renderer, int x, int y) : Object(renderer, x, y, LAZER_WIDTH, LAZER_HEIGHT, 1, "../Assets/Sprites/Laser.png") {
+	dir = 4;
+}
+
+
+BulletFactory::~BulletFactory() {
+	for(Bullet *ptr : vect) {
+		delete ptr;
+	}
+}
+
+Bullet* BulletFactory::getBullet(SDL_Renderer *renderer, int x, int y) {	
+	SDL_Rect rect = { x, y, LAZER_WIDTH, LAZER_HEIGHT };
+	for(Bullet *ptr : vect) {
+		if(!ptr->insideWindow()) {
+			ptr->setPos(rect);
+			return ptr;
+		}
+	}
+	Bullet *ptr = new Bullet(renderer, x, y);
+	ptr->setPos(rect);
+	vect.push_back(ptr);
+	return ptr;
+}
+
+void BulletFactory::update(SDL_Renderer *renderer, Uint64 deltaTime) {
+	for(Bullet *ptr : vect) {
+		if(ptr->insideWindow()) {
+			ptr->render(renderer, 0);
+			ptr->move(LAZER_SPEED, deltaTime);
+		}
+	}
+}
+
+void BulletFactory::remove(Bullet *b) {
+	SDL_Rect rect = b->getPos();
+	rect.x = WINDOW_WIDTH + 100;
+	rect.y = WINDOW_HEIGHT + 100;
+	b->setPos(rect);
+}
+
+bool BulletFactory::check(Invader *I) {
+	for(Bullet *ptr : vect) {
+		if(ptr->checkCollision(I)) {
+			remove(ptr);
+			return true;
+		}
+	}
+	return false;
+}
+
+
+Splat::Splat(SDL_Renderer *renderer, int x, int y) : 	Object(renderer, x, y, SPLAT_SIZE, SPLAT_SIZE, 1, "../Assets/Sprites/Splat.png"),
+							remTime(SPLAT_TIME * 100000000ULL) {}
+
+#include <iostream>
+
+void Splat::update(SDL_Renderer* renderer, Uint64 deltaTime) {
+	if(remTime < deltaTime)
+		remTime = 0;
+	else
+		remTime -= deltaTime;
+
+	if(remTime == 0)
+		return;
+
+	render(renderer, 0);
 }
 
 
