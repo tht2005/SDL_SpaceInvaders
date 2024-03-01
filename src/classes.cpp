@@ -8,7 +8,7 @@ bool iSect(const SDL_Rect& a, const SDL_Rect& b) {
 			std::max(a.y, b.y) <= std::min(a.y + a.h, b.y + b.h);	
 }
 
-Object::Object(SDL_Renderer *renderer, int x, int y, int w, int h, int n...) : dir(0), Time(0), xx(x), yy(y), sprites(n), textures(n) {
+Object::Object(SDL_Renderer *renderer, int x, int y, int w, int h, int n...) : xx(x), yy(y), sprites(n), textures(n) {
 	render_position = { x, y, w, h };	
 
 	va_list args;
@@ -44,15 +44,11 @@ bool Object::getIn() {
 	return 0;
 }
 
-void Object::setDir(int d) {
-	dir = d;	
-}
-
 bool Object::checkCollision(Object* b) {
 	return iSect(render_position, b->render_position);
 }
 
-void Object::move(Uint64 moveSpeed, Uint64 deltaTime) {
+void Object::move(Uint64 moveSpeed, Uint64 deltaTime, int dir) {
 	/**
 		dir = 0001b: left
 		dir = 0010b: right
@@ -95,38 +91,78 @@ void Object::render(SDL_Renderer* renderer, int index) {
 	SDL_RenderCopy(renderer, textures[index], NULL, &render_position);
 }
 
-void Invader::update(SDL_Renderer *renderer, Uint64 deltaTime) {
-	Time += deltaTime;
-	render(renderer, (Time / INVADER_SPRITE_FREQ) & 1);
+
+Invader::Invader(SDL_Renderer *renderer, Uint64 delay, int x, int y, int w, int h, const char* s0, const char* s1) :
+	
+												Object(renderer, x, y, w, h, 2, s0, s1),
+												moveTime(0),
+												stopTime((INVADER_STOP_TIME + delay) * 100000000ULL),
+												advanceTime(0) {}
+
+
+void Invader::advance(Uint64 delta) {
+	advanceTime += delta * 100000000ULL;
 }
 
+void Invader::update(SDL_Renderer *renderer, Uint64 deltaTime, int dir) {
 
-Invader::Invader(SDL_Renderer *renderer, int x, int y, int w, int h, const char* s0, const char* s1) : Object(renderer, x, y, w, h, 2, s0, s1) {}
+	#define ADVANCE_MUL		2
 
-/*
-void Invader::solveCollision(Invader *b) {
-	if(!checkCollision(b)) {
+	if(advanceTime > 0) {
+		if(advanceTime > deltaTime) {
+			advanceTime -= deltaTime;
+			move(INVADER_MOVE_SPEED * ADVANCE_MUL, deltaTime, 8);
+			render(renderer, 0);
+		}
+		else {
+			Uint64 rem = deltaTime - advanceTime;
+			move(INVADER_MOVE_SPEED * ADVANCE_MUL, rem, 8);
+
+			advanceTime = 0;
+			update(renderer, rem, dir);
+		}
 		return;
 	}
-	SDL_Rect u = getPos(), v = b->getPos();
-	if(u.x <= v.x) {
-		u.x = v.x - u.w;
-		setPos(u);	
-		turnDir();
-		b->turnDir();
-	}			
+	#undef ADVANCE_MUL
+
+	if(stopTime == 0) {
+		if(moveTime > deltaTime) {
+			moveTime -= deltaTime;
+			move(INVADER_MOVE_SPEED, deltaTime, dir);
+			render(renderer, 0);
+		}
+		else {
+			Uint64 rem = deltaTime - moveTime;
+			move(INVADER_MOVE_SPEED, rem, dir);
+
+			moveTime = 0;
+			stopTime = INVADER_STOP_TIME * 100000000ULL;
+			update(renderer, rem, dir);
+		}
+	}
 	else {
-		b->solveCollision(this);
+		if(stopTime > deltaTime) {
+			stopTime -= deltaTime;
+			render(renderer, 1);
+		}
+		else {
+			Uint64 rem = deltaTime - stopTime;
+			move(INVADER_MOVE_SPEED, rem, dir);
+
+			stopTime = 0;
+			moveTime = INVADER_MOVE_TIME * 100000000ULL;
+			update(renderer, rem, dir);
+		}
 	}
 }
-*/
-
 
 
 Player::Player(SDL_Renderer* renderer, int x, int y, int w, int h) : Object(renderer, x, y, w, h, 1, "../Assets/Sprites/Player.png"), bulletTime(0) {}
 
-void Player::update(SDL_Renderer *renderer, Uint64 deltaTime) {
+void Player::update(SDL_Renderer *renderer, Uint64 deltaTime, int dir) {
+	move(PLAYER_MOVE_SPEED, deltaTime, dir);
 	render(renderer, 0);
+	getIn();
 
 	if(bulletTime < deltaTime)
 		bulletTime = 0;
@@ -142,9 +178,7 @@ void Player::shoot(SDL_Renderer *renderer, BulletFactory& bulletContainer, Uint6
 }
 
 
-Bullet::Bullet(SDL_Renderer *renderer, int x, int y) : Object(renderer, x, y, LAZER_WIDTH, LAZER_HEIGHT, 1, "../Assets/Sprites/Laser.png") {
-	dir = 4;
-}
+Bullet::Bullet(SDL_Renderer *renderer, int x, int y) : Object(renderer, x, y, LAZER_WIDTH, LAZER_HEIGHT, 1, "../Assets/Sprites/Laser.png") {}
 
 
 BulletFactory::~BulletFactory() {
@@ -171,7 +205,7 @@ void BulletFactory::update(SDL_Renderer *renderer, Uint64 deltaTime) {
 	for(Bullet *ptr : vect) {
 		if(ptr->insideWindow()) {
 			ptr->render(renderer, 0);
-			ptr->move(LAZER_SPEED, deltaTime);
+			ptr->move(LAZER_SPEED, deltaTime, 4);
 		}
 	}
 }
@@ -196,8 +230,6 @@ bool BulletFactory::check(Invader *I) {
 
 Splat::Splat(SDL_Renderer *renderer, int x, int y) : 	Object(renderer, x, y, SPLAT_SIZE, SPLAT_SIZE, 1, "../Assets/Sprites/Splat.png"),
 							remTime(SPLAT_TIME * 100000000ULL) {}
-
-#include <iostream>
 
 void Splat::update(SDL_Renderer* renderer, Uint64 deltaTime) {
 	if(remTime < deltaTime)

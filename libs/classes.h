@@ -7,9 +7,6 @@
 
 class Object {
 	protected:
-	
-	int dir;
-	Uint64 Time;
 	double xx, yy;	
 	SDL_Rect render_position;
 	std::vector<SDL_Surface*> sprites;	
@@ -27,21 +24,20 @@ class Object {
 	bool getIn();
 	bool checkCollision(Object*);
 
-	void setDir(int);
-	void move(Uint64, Uint64);
-
+	void move(Uint64, Uint64, int);
 	void render(SDL_Renderer*, int);
 }; 
 
 class Invader : public Object {
 	private:
+	Uint64 moveTime, stopTime, advanceTime;
 
 	public:
 	
-	Invader(SDL_Renderer*, int, int, int, int, const char*, const char*);
+	Invader(SDL_Renderer*, Uint64, int, int, int, int, const char*, const char*);
 
-	void solveCollision(Invader*);
-	void update(SDL_Renderer*, Uint64);
+	void advance(Uint64);
+	void update(SDL_Renderer*, Uint64, int);
 };
 
 class Bullet : public Object {
@@ -76,7 +72,7 @@ class Player : public Object {
 
 	Player(SDL_Renderer*, int, int, int, int);
 	
-	void update(SDL_Renderer*, Uint64);
+	void update(SDL_Renderer*, Uint64, int);
 	void shoot(SDL_Renderer*, BulletFactory&, Uint64);
 };
 
