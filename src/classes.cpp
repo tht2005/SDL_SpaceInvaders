@@ -15,7 +15,7 @@ Object::Object(SDL_Renderer *renderer, int x, int y, int w, int h, int n...) : x
 	va_start(args, n);
 	for(int i = 0; i < n; ++i) {
 		const char *s = va_arg(args, char*);
-		sprites[i] = 		(SDL_Surface*)CP((void*)IMG_Load(s), "load image error");
+		sprites[i] = 		(SDL_Surface*)CP((void*)IMG_Load(s), s);
 		textures[i] = 		(SDL_Texture*)CP((void*)SDL_CreateTextureFromSurface(renderer, sprites[i]), "create texture error");
 	}
 	va_end(args);
@@ -157,7 +157,7 @@ void Invader::update(SDL_Renderer *renderer, Uint64 deltaTime, int dir) {
 }
 
 
-Player::Player(SDL_Renderer* renderer, int x, int y, int w, int h) : Object(renderer, x, y, w, h, 1, "../Assets/Sprites/Player.png"), bulletTime(0) {}
+Player::Player(SDL_Renderer* renderer, int x, int y, int w, int h) : Object(renderer, x, y, w, h, 1, "./Assets/Sprites/Player.png"), bulletTime(0) {}
 
 void Player::update(SDL_Renderer *renderer, Uint64 deltaTime, int dir) {
 	move(PLAYER_MOVE_SPEED, deltaTime, dir);
@@ -178,7 +178,10 @@ void Player::shoot(SDL_Renderer *renderer, BulletFactory& bulletContainer, Uint6
 }
 
 
-Bullet::Bullet(SDL_Renderer *renderer, int x, int y) : Object(renderer, x, y, LAZER_WIDTH, LAZER_HEIGHT, 1, "../Assets/Sprites/Laser.png") {}
+Bullet::Bullet(SDL_Renderer *renderer, int x, int y) : Object(renderer, x, y, LAZER_WIDTH, LAZER_HEIGHT, 1, "./Assets/Sprites/Laser.png") {}
+
+
+EnemyBullet::EnemyBullet(SDL_Renderer *renderer, int x, int y) : Object(renderer, x, y, LAZER_WIDTH, LAZER_HEIGHT, 1, "./Assets/Sprites/Missile.png") {}
 
 
 BulletFactory::~BulletFactory() {
@@ -228,7 +231,7 @@ bool BulletFactory::check(Invader *I) {
 }
 
 
-Splat::Splat(SDL_Renderer *renderer, int x, int y) : 	Object(renderer, x, y, SPLAT_SIZE, SPLAT_SIZE, 1, "../Assets/Sprites/Splat.png"),
+Splat::Splat(SDL_Renderer *renderer, int x, int y) : 	Object(renderer, x, y, SPLAT_SIZE, SPLAT_SIZE, 1, "./Assets/Sprites/Splat.png"),
 							remTime(SPLAT_TIME * 100000000ULL) {}
 
 void Splat::update(SDL_Renderer* renderer, Uint64 deltaTime) {
