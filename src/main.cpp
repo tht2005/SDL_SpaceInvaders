@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "debug.h"
 #include "defs.h"
 #include "classes.h"
@@ -14,7 +12,6 @@
 #include <random>
 
 std::mt19937_64 rng(std::chrono::steady_clock::now().time_since_epoch().count());
-
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -182,13 +179,12 @@ void Update() {
 				if(remInvader == 1) {
 					speedMul *= 6;
 				}
-				std::cout << speedMul << std::endl;
 			}
 		}
 	}
 	////////////////////////////////////////////////////////////////
 
-	bulletContainer.update(renderer, deltaTime * std::min(std::max((long double)1, speedMul / 2), (long double)5));
+	bulletContainer.update(renderer, deltaTime);// * std::min(std::max((long double)1, speedMul / 2), (long double)5));
 	for(Splat *ptr : splatContainer) {
 		ptr->update(renderer, deltaTime);
 	}
@@ -223,13 +219,15 @@ int main(int argc, char *argv[]) {
 
 
 	///////////////////////////////////////////
+	
+
+	countsPerFrame = SDL_GetPerformanceFrequency() / FPS;
 
 	// A Scene loop (one time play)
 	initGame(renderer);
 
 	// init scene
 	cur = SDL_GetPerformanceCounter();
-	countsPerFrame = SDL_GetPerformanceFrequency() / FPS;
 	last = cur;
 
 	isRunning = SDL_TRUE;
