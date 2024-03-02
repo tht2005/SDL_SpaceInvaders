@@ -87,9 +87,12 @@ class EnemyBullet : public Object {
 	EnemyBullet(SDL_Renderer*, int, int);
 };
 
-class BunkerPoint {
+class Bunker {
 	private:
-		int x, y;
+	std::vector<int> X, Y;
+
 	public:
+	void insertPoint(int, int);
+	void update(SDL_Renderer*);
 };
 

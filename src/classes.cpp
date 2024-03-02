@@ -248,7 +248,21 @@ void Splat::update(SDL_Renderer* renderer, Uint64 deltaTime) {
 
 
 
+void Bunker::insertPoint(int x, int y) {
+	X.push_back(x);
+	Y.push_back(y);
+}
+void Bunker::update(SDL_Renderer *renderer) {
+	// draw ink: white
+	CC(SDL_SetRenderDrawColor(	renderer,
+					255, 255, 255,
+					255), SDL_GetError());
 
+	int cnt = (int)X.size();
+	for(int i = 0; i < cnt; ++i) {
+		SDL_RenderDrawPoint(renderer, X[i], Y[i]);
+	}
+}
 
 
 

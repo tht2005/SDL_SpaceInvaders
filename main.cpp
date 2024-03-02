@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <chrono>
 #include <random>
+#include <math.h>
 
 std::mt19937_64 rng(std::chrono::steady_clock::now().time_since_epoch().count());
 
@@ -27,6 +28,29 @@ Invader *inv[INVADER_ROW + 2][INVADER_COLUMN + 2];
 int curDir, remInvader, cntRow[INVADER_ROW + 2];
 BulletFactory bulletContainer;
 std::vector<Splat*> splatContainer;
+Bunker bunkerPoints;
+
+void createBunker(int x, int y) {
+	for(int i = 0; i < BUNKER_ROW; ++i) {
+		int lout = std::max(0, BUNKER_COLUMN / 5 - i / 5 * 5);
+		int rout = BUNKER_COLUMN - 1 - lout;
+		int lin = BUNKER_COLUMN / 5 + (BUNKER_ROW - 1 - i) / 5 * 5;
+		int rin = BUNKER_COLUMN - lin;
+		if(lin + 5 >= rin) {
+			for(int j = lout; j <= rout; ++j) {
+				bunkerPoints.insertPoint(j + x, i + y);
+			}
+		}
+		else {
+			for(int j = lout; j <= lin; ++j) {
+				bunkerPoints.insertPoint(j + x, i + y);
+			}
+			for(int j = rin; j <= rout; ++j) {
+				bunkerPoints.insertPoint(j + x, i + y);
+			}
+		}
+	}
+}
 
 void initGame(SDL_Renderer* renderer) {
 	// reset renderer
@@ -43,7 +67,7 @@ void initGame(SDL_Renderer* renderer) {
 	speedMul = 1;
 
 	/*** Create Invaders ***/
-	int padding_top = 230;
+	int padding_top = 180;
 	int padding_left = (WINDOW_WIDTH - INVADER_COLUMN * INVADER_SIZE - (INVADER_COLUMN - 1) * INVADER_COLUMN_GAP) / 2 + INVADER_SIZE + INVADER_COLUMN_GAP;
 	for(int i = INVADER_ROW; i--; )
 		for(int j = 0; j < INVADER_COLUMN; ++j) {
@@ -84,6 +108,16 @@ void initGame(SDL_Renderer* renderer) {
 					PLAYER_INIT_Y,
 					PLAYER_SIZE,
 					PLAYER_SIZE);
+	//////////////////////////////////////////////
+	///
+	///
+	/*** Create bunker ***/
+	const int bunkerGap = 80;
+	const int bunkerHeight = 600;
+	int bunkerPadding = (WINDOW_WIDTH - 3 * BUNKER_COLUMN - 2 * bunkerGap) / 2; 
+	createBunker(bunkerPadding, bunkerHeight);
+	createBunker(bunkerPadding + BUNKER_COLUMN + bunkerGap, bunkerHeight);
+	createBunker(bunkerPadding + 2 * (BUNKER_COLUMN + bunkerGap), bunkerHeight);
 	//////////////////////////////////////////////
 	
 }
@@ -189,6 +223,9 @@ void Update() {
 		ptr->update(renderer, deltaTime);
 	}
 	////////////////////
+	///
+	
+	bunkerPoints.update(renderer);
 }
 
 int main(int argc, char *argv[]) {

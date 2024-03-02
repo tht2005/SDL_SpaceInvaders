@@ -34,5 +34,9 @@
 #define SPLAT_SIZE			35
 #define SPLAT_TIME			1
 
+#define BUNKER_ROW			70
+#define BUNKER_COLUMN			90
 #define DESTROY_DISTANCE		5
+
+
 
