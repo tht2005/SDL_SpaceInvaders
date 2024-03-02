@@ -78,7 +78,7 @@ void Object::move(Uint64 moveSpeed, Uint64 deltaTime, int dir) {
 	render_position.y = yy;
 }
 
-SDL_Rect Object::getPos() {
+const SDL_Rect& Object::getPos() {
 	return render_position;
 }
 void Object::setPos(const SDL_Rect& r) {
@@ -229,6 +229,9 @@ bool BulletFactory::check(Invader *I) {
 	}
 	return false;
 }
+const std::vector<Bullet*>& BulletFactory::getVect() const {
+	return vect;
+}
 
 
 Splat::Splat(SDL_Renderer *renderer, int x, int y) : 	Object(renderer, x, y, SPLAT_SIZE, SPLAT_SIZE, 1, "./Assets/Sprites/Splat.png"),
@@ -249,18 +252,48 @@ void Splat::update(SDL_Renderer* renderer, Uint64 deltaTime) {
 
 
 void Bunker::insertPoint(int x, int y) {
-	X.push_back(x);
-	Y.push_back(y);
+	SDL_Point nw = { x, y };
+	a.push_back(nw);
 }
-void Bunker::update(SDL_Renderer *renderer) {
+int NORM(int x, int y, int z, int t) {
+	return (x - z) * (x - z) + (y - t) * (y - t);
+}
+
+void Bunker::remove(SDL_Renderer *renderer, int x, int y) {
+	// remove pixel that distance to (x, y) < DESTROY_DISTANCE
+	for(int i = 0; i < (int)a.size(); ) {
+		if(NORM(x, y, a[i].x, a[i].y) < DESTROY_DISTANCE) {
+			SDL_RenderDrawPoint(renderer, a[i].x, a[i].y);
+
+			std::swap(a[i], a.back());
+			a.pop_back();
+		}
+		else {
+			++i;
+		}
+	}
+}
+void Bunker::update(SDL_Renderer *renderer, BulletFactory& b) {
 	// draw ink: white
 	CC(SDL_SetRenderDrawColor(	renderer,
 					255, 255, 255,
 					255), SDL_GetError());
-
-	int cnt = (int)X.size();
+	int cnt = (int)a.size();
 	for(int i = 0; i < cnt; ++i) {
-		SDL_RenderDrawPoint(renderer, X[i], Y[i]);
+		SDL_RenderDrawPoint(renderer, a[i].x, a[i].y);
+	}
+	CC(SDL_SetRenderDrawColor(	renderer,
+					0, 0, 0,
+					255), SDL_GetError());
+
+	const std::vector<SDL_Point>& old_a(a);
+	for(int i = 0; i < (int)old_a.size(); ++i) {
+		for(Bullet *ptr : b.getVect()) {
+			if(SDL_PointInRect(&old_a[i], &(ptr->getPos()))) {
+				remove(renderer, old_a[i].x, old_a[i].y);
+				b.remove(ptr);
+			}
+		}
 	}
 }
 

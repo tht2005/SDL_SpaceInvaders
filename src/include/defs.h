@@ -36,7 +36,7 @@
 
 #define BUNKER_ROW			70
 #define BUNKER_COLUMN			90
-#define DESTROY_DISTANCE		5
+#define DESTROY_DISTANCE		100
 
 
 

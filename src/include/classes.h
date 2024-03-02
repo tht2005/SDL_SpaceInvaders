@@ -17,7 +17,7 @@ class Object {
 	Object(SDL_Renderer*, int, int, int, int, int...);
 	~Object();
 
-	SDL_Rect getPos();
+	const SDL_Rect& getPos();
 	void setPos(const SDL_Rect&);
 
 	bool insideWindow();
@@ -55,9 +55,9 @@ class BulletFactory {
 	
 	Bullet *getBullet(SDL_Renderer*, int, int);
 	void update(SDL_Renderer*, Uint64);
-
 	bool check(Invader*);
 	void remove(Bullet*);
+	const std::vector<Bullet*>& getVect() const;
 };
 
 
@@ -89,10 +89,11 @@ class EnemyBullet : public Object {
 
 class Bunker {
 	private:
-	std::vector<int> X, Y;
+	std::vector<SDL_Point> a;
 
 	public:
 	void insertPoint(int, int);
-	void update(SDL_Renderer*);
+	void update(SDL_Renderer*, BulletFactory&);
+	void remove(SDL_Renderer*, int, int);
 };
 

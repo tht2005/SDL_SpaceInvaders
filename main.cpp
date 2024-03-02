@@ -225,7 +225,7 @@ void Update() {
 	////////////////////
 	///
 	
-	bunkerPoints.update(renderer);
+	bunkerPoints.update(renderer, bulletContainer);
 }
 
 int main(int argc, char *argv[]) {
