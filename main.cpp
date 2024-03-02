@@ -4,7 +4,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-//#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_ttf.h>
 
 #include <iostream>
 #include <algorithm>
@@ -208,10 +208,6 @@ int main(int argc, char *argv[]) {
 
 	// at game exit free memory
 	atexit(gameExit);
-
-	CC(SDL_SetRenderDrawColor(	renderer,
-                   			0, 0, 0,
-                   			255), SDL_GetError());
 	////////////////////
 	
 	/*** FONT INIT ***/
@@ -238,6 +234,9 @@ int main(int argc, char *argv[]) {
 		last = cur;
 
 		// reset renderer
+		CC(SDL_SetRenderDrawColor(	renderer,
+						0, 0, 0,
+						255), SDL_GetError());
 		SDL_RenderClear(renderer);
 
 		// event handler

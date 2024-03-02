@@ -87,5 +87,9 @@ class EnemyBullet : public Object {
 	EnemyBullet(SDL_Renderer*, int, int);
 };
 
-
+class BunkerPoint {
+	private:
+		int x, y;
+	public:
+};
 

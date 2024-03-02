@@ -34,3 +34,5 @@
 #define SPLAT_SIZE			35
 #define SPLAT_TIME			1
 
+#define DESTROY_DISTANCE		5
+
