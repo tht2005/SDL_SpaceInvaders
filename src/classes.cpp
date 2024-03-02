@@ -174,15 +174,11 @@ void Player::shoot(SDL_Renderer *renderer, BulletFactory& bulletContainer, Uint6
 		return;
 
 	bulletTime += LAZER_COOLDOWN * 1000000000ULL;
-	bulletContainer.getBullet(renderer, render_position.x + PLAYER_SIZE / 2 - LAZER_WIDTH / 2, render_position.y - 30);
+	bulletContainer.getBullet(renderer, render_position.x + PLAYER_SIZE / 2 - LAZER_WIDTH / 2, render_position.y - 10);
 }
 
 
 Bullet::Bullet(SDL_Renderer *renderer, int x, int y) : Object(renderer, x, y, LAZER_WIDTH, LAZER_HEIGHT, 1, "./Assets/Sprites/Laser.png") {}
-
-
-EnemyBullet::EnemyBullet(SDL_Renderer *renderer, int x, int y) : Object(renderer, x, y, LAZER_WIDTH, LAZER_HEIGHT, 1, "./Assets/Sprites/Missile.png") {}
-
 
 BulletFactory::~BulletFactory() {
 	for(Bullet *ptr : vect) {
@@ -204,11 +200,11 @@ Bullet* BulletFactory::getBullet(SDL_Renderer *renderer, int x, int y) {
 	return ptr;
 }
 
-void BulletFactory::update(SDL_Renderer *renderer, Uint64 deltaTime) {
+void BulletFactory::update(SDL_Renderer *renderer, Uint64 deltaTime, bool enemy) {
 	for(Bullet *ptr : vect) {
 		if(ptr->insideWindow()) {
 			ptr->render(renderer, 0);
-			ptr->move(LAZER_SPEED, deltaTime, 4);
+			ptr->move(LAZER_SPEED, deltaTime, enemy ? 8 : 4);
 		}
 	}
 }
@@ -220,7 +216,7 @@ void BulletFactory::remove(Bullet *b) {
 	b->setPos(rect);
 }
 
-bool BulletFactory::check(Invader *I) {
+bool BulletFactory::check(Object *I) {
 	for(Bullet *ptr : vect) {
 		if(ptr->checkCollision(I)) {
 			remove(ptr);

@@ -45,6 +45,7 @@ class Bullet : public Object {
 	Bullet(SDL_Renderer*, int, int);
 };
 
+class Player;
 
 class BulletFactory {
 	private:
@@ -54,12 +55,11 @@ class BulletFactory {
 	~BulletFactory();
 	
 	Bullet *getBullet(SDL_Renderer*, int, int);
-	void update(SDL_Renderer*, Uint64);
-	bool check(Invader*);
+	void update(SDL_Renderer*, Uint64, bool);
+	bool check(Object*);
 	void remove(Bullet*);
 	const std::vector<Bullet*>& getVect() const;
 };
-
 
 class Player : public Object {
 	private:
@@ -82,11 +82,6 @@ class Splat : public Object {
 	void update(SDL_Renderer*, Uint64);
 };
 
-class EnemyBullet : public Object {
-	public:
-	EnemyBullet(SDL_Renderer*, int, int);
-};
-
 class Bunker {
 	private:
 	std::vector<SDL_Point> a;
@@ -95,5 +90,10 @@ class Bunker {
 	void insertPoint(int, int);
 	void update(SDL_Renderer*, BulletFactory&);
 	void remove(SDL_Renderer*, int, int);
+};
+
+
+
+class Text {
 };
 

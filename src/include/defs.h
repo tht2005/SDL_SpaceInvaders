@@ -20,6 +20,8 @@
 #define INVADER_ROW			5
 #define INVADER_MOVE_TIME		1
 #define INVADER_STOP_TIME		5
+#define INVADER_BULLET_W		10
+#define INVADER_BULLET_H		10
 
 #define PLAYER_SIZE			35
 #define PLAYER_INIT_X			100	
